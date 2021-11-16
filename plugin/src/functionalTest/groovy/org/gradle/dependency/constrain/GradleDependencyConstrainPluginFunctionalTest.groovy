@@ -4,7 +4,9 @@
 package org.gradle.dependency.constrain
 
 import org.gradle.testkit.runner.BuildResult
+import org.intellij.lang.annotations.Language
 
+import javax.annotation.Syntax
 import java.nio.file.Files
 
 /**
@@ -12,12 +14,13 @@ import java.nio.file.Files
  */
 class GradleDependencyConstrainPluginFunctionalTest extends BaseFunctionalTest {
 
+    @Language("xml")
     private static final String JUNIT_CONSTRAINTS = """<?xml version="1.0"?>
 <constraints>
     <constraint>
         <group>junit</group>
         <name>junit</name>
-        <lowest-known-safe>4.13.1</lowest-known-safe>
+        <suggested-version>4.13.1</suggested-version>
         <rejected>
             <reject>[4.7,4.13]</reject>
         </rejected>
@@ -41,16 +44,16 @@ class GradleDependencyConstrainPluginFunctionalTest extends BaseFunctionalTest {
         plugins {
             id 'java-library'
         }
-        
+
         repositories {
             // Use Maven Central for resolving dependencies.
             mavenCentral()
         }
-        
+
         dependencies {
             testImplementation("junit:junit:4.12")
         }
-        
+
         task resolve {
             inputs.files(configurations.testRuntimeClasspath)
             doLast {
@@ -83,12 +86,12 @@ class GradleDependencyConstrainPluginFunctionalTest extends BaseFunctionalTest {
         plugins {
             id 'java-library'
         }
-        
+
         repositories {
             // Use Maven Central for resolving dependencies.
             mavenCentral()
         }
-        
+
         task resolve {
             inputs.files(buildscript.configurations.classpath)
             doLast {

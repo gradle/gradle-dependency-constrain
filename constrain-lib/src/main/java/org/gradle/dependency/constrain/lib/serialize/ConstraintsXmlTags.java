@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.dependency.constrain.lib.serializer;
+package org.gradle.dependency.constrain.lib.serialize;
 
 class ConstraintsXmlTags {
     public static final String CONSTRAINTS = "constraints";
@@ -24,4 +24,6 @@ class ConstraintsXmlTags {
     public static final String SUGGESTED_VERSION = "suggested-version";
     public static final String REJECTED = "rejected";
     public static final String REJECT = "reject";
+    public static final String BECAUSE = "because";
+    public static final String ADVISORY = "advisory";
 }

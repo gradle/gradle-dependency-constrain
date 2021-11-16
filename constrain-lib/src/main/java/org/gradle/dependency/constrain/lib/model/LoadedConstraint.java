@@ -30,15 +30,23 @@ public final class LoadedConstraint {
     private final String name;
     private final String suggestedVersion;
     private final List<String> rejected;
+    private final String because;
 
     /**
      * Use {@link LoadedConstraint#builder()} to create an instance.
      */
-    LoadedConstraint(String group, String name, String suggestedVersion, List<String> rejected) {
-        this.group = group;
-        this.name = name;
-        this.suggestedVersion = suggestedVersion;
-        this.rejected = rejected;
+    LoadedConstraint(
+            String group,
+            String name,
+            String suggestedVersion,
+            List<String> rejected,
+            String because
+    ) {
+        this.group = requireNonNull(group, "`group` must not be null");
+        this.name = requireNonNull(name, "`name` must not be null");
+        this.suggestedVersion = requireNonNull(suggestedVersion, "`suggestedVersion` must not be null");
+        this.rejected = requireNonNull(rejected, "`rejected` must not be null");
+        this.because = requireNonNull(because, "`because` must not be null");
     }
 
     public String getGroup() {
@@ -57,11 +65,20 @@ public final class LoadedConstraint {
         return rejected;
     }
 
+    public String getBecause() {
+        return because;
+    }
+
+    public String getObjectNotation() {
+        return group + ":" + name;
+    }
+
     public static final class Builder {
         private String group;
         private String name;
         private String suggestedVersion;
         private final List<String> rejected = new ArrayList<>();
+        private String because;
 
         private Builder() {
             // no-op
@@ -72,9 +89,17 @@ public final class LoadedConstraint {
             return this;
         }
 
+        public boolean isGroupSet() {
+            return group != null;
+        }
+
         public Builder name(String name) {
             this.name = requireNonNull(name, "`name` must not be null");
             return this;
+        }
+
+        public boolean isNameSet() {
+            return name != null;
         }
 
         public Builder suggestedVersion(String suggestedVersion) {
@@ -82,17 +107,30 @@ public final class LoadedConstraint {
             return this;
         }
 
+        public boolean isSuggestedVersionSet() {
+            return suggestedVersion != null;
+        }
 
         public Builder addReject(String rejected) {
             this.rejected.add(requireNonNull(rejected, "`rejected` must not be null"));
             return this;
         }
 
+        public Builder addBecause(String because) {
+            this.because = requireNonNull(because, "`because` must not be null");
+            return this;
+        }
+
+        public boolean isBecauseSet() {
+            return because != null;
+        }
+
         public LoadedConstraint build() {
             return new LoadedConstraint(group,
-                name,
-                suggestedVersion,
-                Collections.unmodifiableList(rejected)
+                    name,
+                    suggestedVersion,
+                    Collections.unmodifiableList(rejected),
+                    because
             );
         }
 

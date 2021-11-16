@@ -17,13 +17,15 @@
 package org.gradle.dependency.constrain.lib.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class LoadedConstraints {
+public final class LoadedConstraints {
+    private static final LoadedConstraints EMPTY = new LoadedConstraints(Collections.emptyList());
 
     private final List<LoadedConstraint> constraints;
 
-    public LoadedConstraints(List<LoadedConstraint> constraints) {
+    private LoadedConstraints(List<LoadedConstraint> constraints) {
         this.constraints = constraints;
     }
 
@@ -34,6 +36,10 @@ public class LoadedConstraints {
     public static final class Builder {
         private final List<LoadedConstraint> constraints = new ArrayList<>();
 
+        private Builder() {
+            // no-op
+        }
+
         public void addConstraint(LoadedConstraint constraint) {
             constraints.add(constraint);
         }
@@ -41,5 +47,13 @@ public class LoadedConstraints {
         public LoadedConstraints build() {
             return new LoadedConstraints(constraints);
         }
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static LoadedConstraints empty() {
+        return EMPTY;
     }
 }

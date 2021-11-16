@@ -7,6 +7,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.dependency.constrain.lib.ConfigurationConstrainService;
+import org.gradle.dependency.constrain.lib.ConstrainService;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -22,12 +23,9 @@ public abstract class GradleDependencyConstrainPlugin implements Plugin<Settings
 
     public void apply(Settings settings) {
         ConfigurationConstrainService constraintService =
-            getObjectFactory()
-                .newInstance(ConfigurationConstrainService.Factory.class)
-                .create(
-                    new File(settings.getRootDir(), "/gradle"),
-                    settings.getBuildscript().getDependencies().getConstraints()::create
-                );
+            ConstrainService.Factory
+                .loadAndCreate(new File(settings.getRootDir(), "/gradle"))
+                .create(settings.getBuildscript().getDependencies().getConstraints()::create);
         settings.getGradle().allprojects(project -> {
             constraintService.doConstrain(project.getBuildscript().getConfigurations());
             constraintService.doConstrain(project.getConfigurations());
