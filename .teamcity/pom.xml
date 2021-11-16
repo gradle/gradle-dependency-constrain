@@ -13,8 +13,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dslContextParameter.branch>main</dslContextParameter.branch>
     </properties>
-    <groupId>GradleDependencyConstrainPlugin</groupId>
-    <artifactId>GradleDependencyConstrainPlugin_dsl</artifactId>
+    <groupId>GradlePlugins_GradleDependencyConstrainPlugin</groupId>
+    <artifactId>GradlePlugins_GradleDependencyConstrainPlugin_dsl</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <repositories>
