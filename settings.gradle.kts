@@ -6,4 +6,4 @@ pluginManagement {
 
 rootProject.name = "gradle-dependency-constrain"
 include("constrain-lib")
-include("plugin")
+include("constrain-plugin")
