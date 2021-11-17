@@ -10,6 +10,8 @@ plugins {
     id("com.github.johnrengelman.shadow")
 }
 
+val pluginGroup = group
+
 val shadowImplementation: Configuration by configurations.creating
 configurations["compileOnly"].extendsFrom(shadowImplementation)
 configurations["testImplementation"].extendsFrom(shadowImplementation)
@@ -26,8 +28,13 @@ tasks.withType<PluginUnderTestMetadata>().configureEach {
     pluginClasspath.from(shadowImplementation)
 }
 
-val relocateShadowJar = tasks.register<ConfigureShadowRelocation>("relocateShadowJar")
-val shadowJarTask = tasks.named<ShadowJar>("shadowJar") {
+val relocateShadowJar = tasks.register<ConfigureShadowRelocation>("relocateShadowJar") {
+    // Enable package relocation in resulting shadow jar
+    prefix = "$pluginGroup.shadow"
+    target = shadowJarTask.get() // This compiles! 🤯
+}
+
+val shadowJarTask: TaskProvider<ShadowJar> = tasks.named<ShadowJar>("shadowJar") {
     dependsOn(relocateShadowJar)
     archiveClassifier.set("")
     configurations = listOf(shadowImplementation)
