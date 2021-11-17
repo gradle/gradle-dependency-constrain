@@ -6,6 +6,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.ParametrizedWithType
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v2019_2.toId
 
@@ -68,6 +69,19 @@ fun Project.buildType(buildTypeName: String, init: BuildType.() -> Unit): BuildT
 
 private fun stripRootProject(id: String): String {
     return id.replace("${DslContext.projectId.value}_", "")
+}
+
+fun Project.commitStatus() {
+    features {
+        commitStatusPublisher {
+            publisher = github {
+                githubUrl = "https://api.github.com"
+                authType = personalToken {
+                    token = "%githubTeamcityBotApiKey%"
+                }
+            }
+        }
+    }
 }
 
 fun BuildSteps.gradleCustom(init: GradleBuildStep.() -> Unit) {

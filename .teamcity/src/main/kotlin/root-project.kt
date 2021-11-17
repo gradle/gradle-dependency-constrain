@@ -27,6 +27,8 @@ fun Project.configureGradleDependencyConstrainProject() {
         java8Home(Os.linux)
     }
 
+    commitStatus()
+
     val quickFeedbackBuildType = buildType("Quick Feedback") {
         steps {
             gradleCustom {
@@ -54,6 +56,8 @@ fun Project.configureGradleDependencyConstrainProject() {
     }
 
     subProject("Release") {
+        commitStatus()
+
         buildType("Development") {
             description =
                 "Publishes Gradle test retry plugin to development plugin portal (plugins.grdev.net)"
