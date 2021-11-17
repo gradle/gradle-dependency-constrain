@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 
 fun Project.configureGradleDependencyConstrainProject() {
