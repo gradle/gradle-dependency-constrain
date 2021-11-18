@@ -29,6 +29,14 @@ public final class LoadedConstraints {
         this.constraints = constraints;
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static LoadedConstraints empty() {
+        return EMPTY;
+    }
+
     public List<LoadedConstraint> getConstraints() {
         return constraints;
     }
@@ -47,13 +55,5 @@ public final class LoadedConstraints {
         public LoadedConstraints build() {
             return new LoadedConstraints(constraints);
         }
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static LoadedConstraints empty() {
-        return EMPTY;
     }
 }

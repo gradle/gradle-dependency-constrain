@@ -6,7 +6,6 @@ package org.gradle.dependency.constrain
 import org.gradle.testkit.runner.BuildResult
 import org.intellij.lang.annotations.Language
 
-import javax.annotation.Syntax
 import java.nio.file.Files
 
 /**

@@ -24,11 +24,12 @@ import org.gradle.internal.exceptions.Contextual;
  */
 @Contextual
 public class DependencyConstrainException extends GradleException {
-    public DependencyConstrainException(String message) {
-        super(message);
-    }
 
-    public DependencyConstrainException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public DependencyConstrainException(String message) {
+    super(message);
+  }
+
+  public DependencyConstrainException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

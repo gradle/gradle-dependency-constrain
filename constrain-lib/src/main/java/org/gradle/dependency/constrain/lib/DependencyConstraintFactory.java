@@ -8,5 +8,7 @@ import org.gradle.api.artifacts.DependencyConstraint;
  */
 @FunctionalInterface
 public interface DependencyConstraintFactory {
-    DependencyConstraint create(Object dependencyNotation, Action<? super DependencyConstraint> configureAction);
+
+  DependencyConstraint create(
+      Object dependencyNotation, Action<? super DependencyConstraint> configureAction);
 }

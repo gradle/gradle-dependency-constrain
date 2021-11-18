@@ -37,6 +37,13 @@ public class ConstrainService implements ConfigurationConstrainService {
         this.constraints = constraints;
     }
 
+    /**
+     * An empty {@link ConstrainService} useful for testing.
+     */
+    public static ConstrainService empty() {
+        return new ConstrainService(Collections.emptyList());
+    }
+
     @Override
     public void doConstrain(Configuration configuration) {
         configuration.getDependencyConstraints().addAll(constraints);
@@ -55,29 +62,6 @@ public class ConstrainService implements ConfigurationConstrainService {
             this.loadedConstraints = loadedConstraints;
         }
 
-        public ConstrainService create(DependencyConstraintFactory constraintFactory) {
-            final List<DependencyConstraint> constraints =
-                loadedConstraints
-                    .getConstraints()
-                    .stream()
-                    .map(loadedConstraint -> generateConstraint(constraintFactory, loadedConstraint))
-                    .collect(Collectors.toList());
-            return new ConstrainService(constraints);
-        }
-
-        private DependencyConstraint generateConstraint(DependencyConstraintFactory constraintFactory, LoadedConstraint loadedConstraint) {
-            return constraintFactory.create(loadedConstraint.getObjectNotation(), gradleConstraint -> {
-                gradleConstraint.version(gradleVersion -> {
-                    gradleVersion.strictly(loadedConstraint.getSuggestedVersion());
-                    //noinspection RedundantSuppression
-                    //noinspection SimplifyStreamApiCallChains - Can't simplify as `toArray` on collection is Java 10+ only
-                    gradleVersion.reject(loadedConstraint.getRejected().stream().toArray(String[]::new));
-                });
-                gradleConstraint.because(loadedConstraint.getBecause());
-            });
-        }
-
-
         /**
          * Loads the constraints from the constraints file and generates the constraints model.
          *
@@ -86,12 +70,32 @@ public class ConstrainService implements ConfigurationConstrainService {
         public static ConstrainService.Factory loadAndCreate(File projectGradleDirectory) {
             return new Factory(ConstrainFileLoader.loadConstraintsFromFile(projectGradleDirectory));
         }
-    }
 
-    /**
-     * An empty {@link ConstrainService} useful for testing.
-     */
-    public static ConstrainService empty() {
-        return new ConstrainService(Collections.emptyList());
+        public ConstrainService create(DependencyConstraintFactory constraintFactory) {
+            final List<DependencyConstraint> constraints =
+                loadedConstraints.getConstraints().stream()
+                    .map(loadedConstraint -> generateConstraint(constraintFactory, loadedConstraint))
+                    .collect(Collectors.toList());
+            return new ConstrainService(constraints);
+        }
+
+        private DependencyConstraint generateConstraint(
+            DependencyConstraintFactory constraintFactory, LoadedConstraint loadedConstraint
+        ) {
+            return constraintFactory.create(
+                loadedConstraint.getObjectNotation(),
+                gradleConstraint -> {
+                    gradleConstraint.version(
+                        gradleVersion -> {
+                            gradleVersion.strictly(loadedConstraint.getSuggestedVersion());
+                            //noinspection RedundantSuppression
+                            //noinspection SimplifyStreamApiCallChains - Can't simplify as `toArray` on
+                            // collection is Java 10+ only
+                            gradleVersion.reject(
+                                loadedConstraint.getRejected().stream().toArray(String[]::new));
+                        });
+                    gradleConstraint.because(loadedConstraint.getBecause());
+                });
+        }
     }
 }

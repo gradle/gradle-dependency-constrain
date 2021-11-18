@@ -16,7 +16,6 @@
 
 package org.gradle.dependency.constrain.lib.serialize;
 
-
 import org.gradle.dependency.constrain.lib.DependencyConstrainException;
 import org.gradle.dependency.constrain.lib.model.LoadedConstraint;
 import org.gradle.dependency.constrain.lib.model.LoadedConstraints;
@@ -56,7 +55,9 @@ public final class ConstraintsXmlReader {
         return builder.build();
     }
 
-    private static void readFromXml(@WillClose InputStream in, LoadedConstraints.Builder constraintsBuilder) {
+    private static void readFromXml(
+        @WillClose InputStream in, LoadedConstraints.Builder constraintsBuilder
+    ) {
         try (InputStream inputStream = in) {
             SAXParser saxParser = createSecureParser();
             XMLReader xmlReader = saxParser.getXMLReader();
@@ -64,7 +65,10 @@ public final class ConstraintsXmlReader {
             xmlReader.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
             xmlReader.setContentHandler(handler);
             xmlReader.parse(new InputSource(inputStream));
-        } catch (IOException | SAXException | ParserConfigurationException | DependencyConstrainException e) {
+        } catch (IOException
+            | SAXException
+            | ParserConfigurationException
+            | DependencyConstrainException e) {
             throw new DependencyConstrainException("Unable to read dependency constraints", e);
         }
     }
@@ -78,7 +82,8 @@ public final class ConstraintsXmlReader {
     }
 
     /**
-     * Handler that parses the constraints.xml file building the {@link LoadedConstraints} via the {@link LoadedConstraints.Builder}.
+     * Handler that parses the constraints.xml file building the {@link LoadedConstraints} via the
+     * {@link LoadedConstraints.Builder}.
      */
     private static class ConstraintsHandler extends DefaultHandler2 {
         private final LoadedConstraints.Builder constraintsBuilder;
@@ -99,6 +104,21 @@ public final class ConstraintsXmlReader {
 
         ConstraintsHandler(LoadedConstraints.Builder constraintsBuilder) {
             this.constraintsBuilder = constraintsBuilder;
+        }
+
+        @Nonnull
+        private static String createOrAppend(@Nullable String current, @Nonnull String append) {
+            return current == null ? append : current + append;
+        }
+
+        private static void assertContext(boolean test, String innerTag, String outerTag) {
+            assertContext(test, "<" + innerTag + "> must be found under the <" + outerTag + "> tag");
+        }
+
+        private static void assertContext(boolean test, String message) {
+            if (!test) {
+                throw new DependencyConstrainException("Invalid dependency constraints file: " + message);
+            }
         }
 
         @Override
@@ -194,7 +214,8 @@ public final class ConstraintsXmlReader {
                 currentName = createOrAppend(currentName, new String(ch, start, length));
             }
             if (inSuggestedVersion) {
-                currentSuggestedVersion = createOrAppend(currentSuggestedVersion, new String(ch, start, length));
+                currentSuggestedVersion =
+                    createOrAppend(currentSuggestedVersion, new String(ch, start, length));
             }
             if (inReject) {
                 currentReject = createOrAppend(currentReject, new String(ch, start, length));
@@ -204,28 +225,23 @@ public final class ConstraintsXmlReader {
             }
         }
 
-        @Nonnull
-        private static String createOrAppend(@Nullable String current, @Nonnull String append) {
-            return current == null ? append : current + append;
-        }
-
         /**
          * Asserts that the {@code <constraint>...</constraint>} element is well-formed.
          */
         private void assertConstraintValid() {
             assert currentConstraintBuilder != null : "`currentConstraintBuilder` not defined";
-            assertContext(currentConstraintBuilder.isGroupSet(), String.format(
-                "<%s> tag must appear under the <%s> tag", GROUP, CONSTRAINT
-            ));
-            assertContext(currentConstraintBuilder.isNameSet(), String.format(
-                "<%s> tag must appear under the <%s> tag", NAME, CONSTRAINT
-            ));
-            assertContext(currentConstraintBuilder.isSuggestedVersionSet(), String.format(
-                "<%s> tag must appear under the <%s> tag", SUGGESTED_VERSION, CONSTRAINT
-            ));
-            assertContext(currentConstraintBuilder.isBecauseSet(), String.format(
-                "<%s> tag must appear under the <%s> tag", BECAUSE, CONSTRAINT
-            ));
+            assertContext(
+                currentConstraintBuilder.isGroupSet(),
+                String.format("<%s> tag must appear under the <%s> tag", GROUP, CONSTRAINT));
+            assertContext(
+                currentConstraintBuilder.isNameSet(),
+                String.format("<%s> tag must appear under the <%s> tag", NAME, CONSTRAINT));
+            assertContext(
+                currentConstraintBuilder.isSuggestedVersionSet(),
+                String.format("<%s> tag must appear under the <%s> tag", SUGGESTED_VERSION, CONSTRAINT));
+            assertContext(
+                currentConstraintBuilder.isBecauseSet(),
+                String.format("<%s> tag must appear under the <%s> tag", BECAUSE, CONSTRAINT));
         }
 
         private void maybeExtractAdvisory(Attributes attributes) {
@@ -239,20 +255,9 @@ public final class ConstraintsXmlReader {
             }
         }
 
-        private static void assertContext(boolean test, String innerTag, String outerTag) {
-            assertContext(test, "<" + innerTag + "> must be found under the <" + outerTag + "> tag");
-        }
-
-        private static void assertContext(boolean test, String message) {
-            if (!test) {
-                throw new DependencyConstrainException("Invalid dependency constraints file: " + message);
-            }
-        }
-
         @Nullable
         private String getNullableAttribute(Attributes attributes, String name) {
             return attributes.getValue(name);
         }
     }
-
 }

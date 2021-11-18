@@ -31,8 +31,8 @@ tasks.withType<PluginUnderTestMetadata>().configureEach {
 val shadowJarTask: TaskProvider<ShadowJar> = tasks.named<ShadowJar>("shadowJar") {
     archiveClassifier.set("")
     configurations = listOf(shadowImplementation)
-    configurations.forEach { configuration ->
-        configuration.files.forEach { jar ->
+    doFirst {
+        shadowImplementation.resolvedConfiguration.files.forEach { jar ->
             JarFile(jar).use { jf ->
                 jf.entries().iterator().forEach { entry ->
                     if (entry.name.endsWith(".class") && entry.name != "module-info.class") {
@@ -49,24 +49,25 @@ val shadowJarTask: TaskProvider<ShadowJar> = tasks.named<ShadowJar>("shadowJar")
     }
 }
 
+configurations.archives.get().artifacts.clear()
 configurations {
     artifacts {
         runtimeElements(shadowJarTask)
         apiElements(shadowJarTask)
+        archives(tasks.shadowJar)
     }
 }
+
+// Add the shadow JAR to the runtime consumable configuration
+configurations.apiElements.get().artifacts.clear()
+configurations.apiElements.get().outgoing.artifact(tasks.shadowJar)
+configurations.runtimeElements.get().outgoing.artifacts.clear()
+configurations.runtimeElements.get().outgoing.artifact(tasks.shadowJar)
 
 // Disabling default jar task as it is overridden by shadowJar
 tasks.named("jar").configure {
     enabled = false
 }
-
-tasks.whenTaskAdded {
-    if (name == "publishPluginJar" || name == "generateMetadataFileForPluginMavenPublication") {
-        dependsOn(tasks.named("shadowJar"))
-    }
-}
-
 
 gradlePlugin {
     // Define the plugin

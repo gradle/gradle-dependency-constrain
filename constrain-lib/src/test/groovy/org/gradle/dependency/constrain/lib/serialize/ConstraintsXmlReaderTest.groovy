@@ -22,7 +22,13 @@ import org.gradle.dependency.constrain.lib.model.LoadedConstraints
 import org.intellij.lang.annotations.Language
 import spock.lang.Specification
 
-import static org.gradle.dependency.constrain.lib.serialize.ConstraintsXmlTags.*
+import static org.gradle.dependency.constrain.lib.serialize.ConstraintsXmlTags.CONSTRAINT
+import static org.gradle.dependency.constrain.lib.serialize.ConstraintsXmlTags.CONSTRAINTS
+import static org.gradle.dependency.constrain.lib.serialize.ConstraintsXmlTags.GROUP
+import static org.gradle.dependency.constrain.lib.serialize.ConstraintsXmlTags.NAME
+import static org.gradle.dependency.constrain.lib.serialize.ConstraintsXmlTags.REJECT
+import static org.gradle.dependency.constrain.lib.serialize.ConstraintsXmlTags.REJECTED
+import static org.gradle.dependency.constrain.lib.serialize.ConstraintsXmlTags.SUGGESTED_VERSION
 
 class ConstraintsXmlReaderTest extends Specification {
 

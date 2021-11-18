@@ -1,3 +1,11 @@
+plugins {
+    id("com.diffplug.spotless")
+}
+
+allprojects {
+    apply(plugin = "com.diffplug.spotless")
+}
+
 subprojects {
     group = "org.gradle.dependency.constrain"
     version = "0.1"
@@ -11,6 +19,12 @@ subprojects {
         configure<JavaPluginExtension> {
             sourceCompatibility = JavaVersion.VERSION_1_8
             targetCompatibility = JavaVersion.VERSION_1_8
+        }
+
+        configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+            java {
+                removeUnusedImports()
+            }
         }
     }
 

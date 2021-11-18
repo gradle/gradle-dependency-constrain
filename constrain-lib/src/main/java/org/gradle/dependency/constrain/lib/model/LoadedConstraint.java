@@ -36,17 +36,17 @@ public final class LoadedConstraint {
      * Use {@link LoadedConstraint#builder()} to create an instance.
      */
     LoadedConstraint(
-            String group,
-            String name,
-            String suggestedVersion,
-            List<String> rejected,
-            String because
+        String group, String name, String suggestedVersion, List<String> rejected, String because
     ) {
         this.group = requireNonNull(group, "`group` must not be null");
         this.name = requireNonNull(name, "`name` must not be null");
         this.suggestedVersion = requireNonNull(suggestedVersion, "`suggestedVersion` must not be null");
         this.rejected = requireNonNull(rejected, "`rejected` must not be null");
         this.because = requireNonNull(because, "`because` must not be null");
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public String getGroup() {
@@ -74,10 +74,10 @@ public final class LoadedConstraint {
     }
 
     public static final class Builder {
+        private final List<String> rejected = new ArrayList<>();
         private String group;
         private String name;
         private String suggestedVersion;
-        private final List<String> rejected = new ArrayList<>();
         private String because;
 
         private Builder() {
@@ -103,7 +103,8 @@ public final class LoadedConstraint {
         }
 
         public Builder suggestedVersion(String suggestedVersion) {
-            this.suggestedVersion = requireNonNull(suggestedVersion, "`suggestedVersion` must not be null");
+            this.suggestedVersion =
+                requireNonNull(suggestedVersion, "`suggestedVersion` must not be null");
             return this;
         }
 
@@ -126,17 +127,8 @@ public final class LoadedConstraint {
         }
 
         public LoadedConstraint build() {
-            return new LoadedConstraint(group,
-                    name,
-                    suggestedVersion,
-                    Collections.unmodifiableList(rejected),
-                    because
-            );
+            return new LoadedConstraint(
+                group, name, suggestedVersion, Collections.unmodifiableList(rejected), because);
         }
-
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 }

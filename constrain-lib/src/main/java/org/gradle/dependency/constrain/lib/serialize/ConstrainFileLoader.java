@@ -26,9 +26,14 @@ import java.io.FileNotFoundException;
 
 public final class ConstrainFileLoader {
 
+    private ConstrainFileLoader() {
+        // Utility class
+    }
+
     /**
-     * Loads the constraints model from the given directory.
-     * Wraps {@link DependencyConstrainException} thrown with an error message indicating the file that caused the error.
+     * Loads the constraints model from the given directory. Wraps {@link
+     * DependencyConstrainException} thrown with an error message indicating the file that caused the
+     * error.
      */
     public static LoadedConstraints loadConstraintsFromFile(File projectGradleDirectory) {
         final File constraintsFile = new File(projectGradleDirectory, "constraints.xml");
@@ -41,11 +46,8 @@ public final class ConstrainFileLoader {
             throw new UncheckedIOException(e);
         } catch (DependencyConstrainException e) {
             // Propagate the exception but add the file name to the message
-            throw new DependencyConstrainException("Failed to load constraints from " + constraintsFile, e.getCause());
+            throw new DependencyConstrainException(
+                "Failed to load constraints from " + constraintsFile, e.getCause());
         }
-    }
-
-    private ConstrainFileLoader() {
-        // Utility class
     }
 }

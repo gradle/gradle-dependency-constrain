@@ -3,6 +3,7 @@ import java.net.URI
 pluginManagement {
     plugins {
         id("com.github.johnrengelman.shadow") version "7.1.0"
+        id("com.diffplug.spotless") version "6.0.0"
     }
 }
 plugins {
