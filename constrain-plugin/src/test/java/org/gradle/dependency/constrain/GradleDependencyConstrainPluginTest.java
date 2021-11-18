@@ -3,6 +3,7 @@
  */
 package org.gradle.dependency.constrain;
 
+import org.gradle.api.GradleException;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
@@ -12,12 +13,17 @@ import static org.junit.jupiter.api.Assertions.*;
  * A simple unit test for the 'org.gradle.dependency.constrainer.greeting' plugin.
  */
 class GradleDependencyConstrainPluginTest {
-    @Test void pluginRegistersATask() {
+    @Test
+    void pluginFailsWithFriendlyErrorWhenAppliedToProject() {
         // Create a test project and apply the plugin
         Project project = ProjectBuilder.builder().build();
-        project.getPlugins().apply("org.gradle.dependency.constrain.greeting");
 
-        // Verify the result
-        assertNotNull(project.getTasks().findByName("greeting"));
+        GradleException ex = assertThrows(GradleException.class, () -> {
+            project.getPlugins().apply("org.gradle.dependency.constrain");
+        });
+        assertEquals(
+                "The dependency constrain plugin must be applied to settings (was applied to a project)",
+                ex.getCause().getMessage()
+        );
     }
 }

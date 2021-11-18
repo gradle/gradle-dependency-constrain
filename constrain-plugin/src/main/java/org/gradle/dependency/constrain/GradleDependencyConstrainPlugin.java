@@ -3,12 +3,16 @@
  */
 package org.gradle.dependency.constrain;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.dependency.constrain.lib.ConfigurationConstrainService;
 import org.gradle.dependency.constrain.lib.ConstrainService;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -16,19 +20,40 @@ import java.io.File;
  * Plugin that applies dependency constraints to the build from an external configuration file.
  */
 @SuppressWarnings("unused")
-public abstract class GradleDependencyConstrainPlugin implements Plugin<Settings> {
+public abstract class GradleDependencyConstrainPlugin implements Plugin<Object> {
 
-    @Inject
-    public abstract ObjectFactory getObjectFactory();
+    public void apply(Object object) {
+        if (object instanceof Settings) {
+            doApply((Settings) object);
+        } else {
+            throw new GradleException(
+                    "The dependency constrain plugin must be applied to settings (was applied to " +
+                            pluginApplicationTargetDisplayName(object) +
+                            ")"
+            );
+        }
+    }
 
-    public void apply(Settings settings) {
+    private void doApply(Settings settings) {
         ConfigurationConstrainService constraintService =
-            ConstrainService.Factory
-                .loadAndCreate(new File(settings.getRootDir(), "/gradle"))
-                .create(settings.getBuildscript().getDependencies().getConstraints()::create);
+                ConstrainService.Factory
+                        .loadAndCreate(new File(settings.getRootDir(), "/gradle"))
+                        .create(settings.getBuildscript().getDependencies().getConstraints()::create);
         settings.getGradle().allprojects(project -> {
             constraintService.doConstrain(project.getBuildscript().getConfigurations());
             constraintService.doConstrain(project.getConfigurations());
         });
+    }
+
+    private static String pluginApplicationTargetDisplayName(@Nonnull Object object) {
+        if (object instanceof Project) {
+            return "a project";
+        } else if (object instanceof Settings) {
+            return "settings";
+        } else if (object instanceof Gradle) {
+            return "init script";
+        } else {
+            return object.getClass().getName();
+        }
     }
 }

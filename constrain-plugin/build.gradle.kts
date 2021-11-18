@@ -1,5 +1,5 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import java.util.jar.JarFile
 
 plugins {
     // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
@@ -28,16 +28,25 @@ tasks.withType<PluginUnderTestMetadata>().configureEach {
     pluginClasspath.from(shadowImplementation)
 }
 
-val relocateShadowJar = tasks.register<ConfigureShadowRelocation>("relocateShadowJar") {
-    // Enable package relocation in resulting shadow jar
-    prefix = "$pluginGroup.shadow"
-    target = shadowJarTask.get() // This compiles! 🤯
-}
-
 val shadowJarTask: TaskProvider<ShadowJar> = tasks.named<ShadowJar>("shadowJar") {
-    dependsOn(relocateShadowJar)
     archiveClassifier.set("")
     configurations = listOf(shadowImplementation)
+    configurations.forEach { configuration ->
+        configuration.files.forEach { jar ->
+            JarFile(jar).use { jf ->
+                jf.entries().iterator().forEach { entry ->
+                    if (entry.name.endsWith(".class") && entry.name != "module-info.class") {
+                        val packageName =
+                            entry
+                                .name
+                                .substring(0..entry.name.lastIndexOf('/'))
+                                .replace('/', '.')
+                        relocate(packageName, "${pluginGroup}.shadow.$packageName")
+                    }
+                }
+            }
+        }
+    }
 }
 
 configurations {
