@@ -1,0 +1,5 @@
+[libraries]
+jackson-platform = { group = "com.fasterxml.jackson", name = "jackson-bom", version = "2.12.1" }
+jackson-yaml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml" }
+jackson-parameter-names = { group = "com.fasterxml.jackson.module", name = "jackson-module-parameter-names" }
+github-diff-utils = { group = "io.github.java-diff-utils", name = "java-diff-utils", version = "4.11" }

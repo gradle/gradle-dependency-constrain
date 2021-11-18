@@ -1,5 +1,3 @@
-import java.net.URI
-
 pluginManagement {
     plugins {
         id("com.github.johnrengelman.shadow") version "7.1.0"
@@ -7,7 +5,7 @@ pluginManagement {
     }
 }
 plugins {
-    id("com.gradle.enterprise").version("3.7.1")
+    id("com.gradle.enterprise").version("3.7.2")
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.4")
 }
 
@@ -30,5 +28,8 @@ apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
 
 rootProject.name = "gradle-dependency-constrain"
 
+includeBuild("constrain-build-logic")
 include("constrain-lib")
 include("constrain-plugin")
+
+enableFeaturePreview("VERSION_CATALOGS")

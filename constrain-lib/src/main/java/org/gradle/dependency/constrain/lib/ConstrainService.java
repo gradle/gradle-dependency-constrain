@@ -16,10 +16,7 @@
 
 package org.gradle.dependency.constrain.lib;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.dependency.constrain.lib.model.LoadedConstraint;
-import org.gradle.dependency.constrain.lib.model.LoadedConstraints;
 import org.gradle.dependency.constrain.lib.serialize.ConstrainFileLoader;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -27,75 +24,64 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ServiceScope(value = Scopes.Build.class)
-public class ConstrainService implements ConfigurationConstrainService {
-    public final List<DependencyConstraint> constraints;
+public interface ConstrainService extends ConfigurationConstrainService {
 
-    private ConstrainService(List<DependencyConstraint> constraints) {
-        this.constraints = constraints;
+    List<DependencyConstraint> getConstraints();
+
+    /**
+     * Creates a new {@link ConstrainService} which is a union between this and the passed {@link ConstrainService}.
+     * Loading error will not be thrown by this method.
+     * The returned {@link ConstrainService} will inherit loading exceptions from this and the other.
+     */
+    default ConstrainService union(ConstrainService other) {
+        assert !(this instanceof AsyncConstrainService) :
+            "The default implementation of ConstrainService.union must not be used for AsyncConstrainService";
+        if (other instanceof AsyncConstrainService) {
+            return new AsyncConstrainService(CompletableFuture.completedFuture(this)).union(other);
+        }
+        final List<DependencyConstraint> union =
+            Stream
+                .concat(getConstraints().stream(), other.getConstraints().stream())
+                .collect(Collectors.toList());
+        return new DefaultConstrainService(union);
     }
 
     /**
      * An empty {@link ConstrainService} useful for testing.
      */
-    public static ConstrainService empty() {
-        return new ConstrainService(Collections.emptyList());
+    static ConstrainService empty() {
+        return new DefaultConstrainService(Collections.emptyList());
     }
 
-    @Override
-    public void doConstrain(Configuration configuration) {
-        configuration.getDependencyConstraints().addAll(constraints);
-    }
 
-    public final List<DependencyConstraint> getConstraints() {
-        return Collections.unmodifiableList(constraints);
-    }
+    @ServiceScope(value = Scopes.Build.class)
+    interface Factory {
 
-    @ServiceScope(value = Scopes.BuildTree.class)
-    public static final class Factory {
-
-        private final LoadedConstraints loadedConstraints;
-
-        private Factory(LoadedConstraints loadedConstraints) {
-            this.loadedConstraints = loadedConstraints;
-        }
+        ConstrainService create(DependencyConstraintFactory constraintFactory);
 
         /**
          * Loads the constraints from the constraints file and generates the constraints model.
          *
          * @param projectGradleDirectory The directory containing the constraints file.
          */
-        public static ConstrainService.Factory loadAndCreate(File projectGradleDirectory) {
-            return new Factory(ConstrainFileLoader.loadConstraintsFromFile(projectGradleDirectory));
+        static ConstrainService.Factory loadAndCreate(File projectGradleDirectory) {
+            return new DefaultConstrainService.Factory(ConstrainFileLoader.loadConstraintsFromFile(projectGradleDirectory));
         }
 
-        public ConstrainService create(DependencyConstraintFactory constraintFactory) {
-            final List<DependencyConstraint> constraints =
-                loadedConstraints.getConstraints().stream()
-                    .map(loadedConstraint -> generateConstraint(constraintFactory, loadedConstraint))
-                    .collect(Collectors.toList());
-            return new ConstrainService(constraints);
-        }
-
-        private DependencyConstraint generateConstraint(
-            DependencyConstraintFactory constraintFactory, LoadedConstraint loadedConstraint
-        ) {
-            return constraintFactory.create(
-                loadedConstraint.getObjectNotation(),
-                gradleConstraint -> {
-                    gradleConstraint.version(
-                        gradleVersion -> {
-                            gradleVersion.strictly(loadedConstraint.getSuggestedVersion());
-                            //noinspection RedundantSuppression
-                            //noinspection SimplifyStreamApiCallChains - Can't simplify as `toArray` on
-                            // collection is Java 10+ only
-                            gradleVersion.reject(
-                                loadedConstraint.getRejected().stream().toArray(String[]::new));
-                        });
-                    gradleConstraint.because(loadedConstraint.getBecause());
-                });
+        /**
+         * Loads the constraints from the constraints file and generates the constraints model asynchronously.
+         * Exceptions will be thrown by the calls to {@link ConstrainService} if they occur.
+         */
+        static ConstrainService.Factory loadAndCreateAsync(File projectGradleDirectory, Executor executor) {
+            final CompletableFuture<Factory> factoryCompletableFuture =
+                CompletableFuture.supplyAsync(() -> loadAndCreate(projectGradleDirectory), executor);
+            return new AsyncConstrainService.Factory(factoryCompletableFuture);
         }
     }
 }

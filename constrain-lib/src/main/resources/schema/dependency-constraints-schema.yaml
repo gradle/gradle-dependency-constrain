@@ -1,0 +1,164 @@
+# This file will automatically be converted to the `dependency-constraints-schema.json` file by the Gradle Build.
+# This file is the source of truth. We're using YAML here for the improved multi-line string support, comments, and reduced verbosity.
+{
+  $schema: "https://json-schema.org/draft/2019-09/schema",
+  type: "object",
+  title: "Dependency Constraints Schema.",
+  description: "Defines a set of constraints to be applied to a Gradle Build.
+    When used as a Gradle Plugin, constraints in this file will constrain the project buildscript and project dependencies.
+    When leveraged as a Gradle feature, these constraints apply to all configurations in all scopes.
+    \n\n
+    FORMATTING RULES:\n
+    In addition to this schema, there are formatting requirements that can not be enforced by JSON schema.\n
+    Rules:\n
+    \t- All indentation MUST use two spaces.\n
+    \t- All keys MUST have the colon `:` directly after the key name.\n
+    \t- All non-map and non-object values MUST be on the same line as the key.\n
+    \t- The `dependencyConstraints` array must be sorted lexicographically. See the description on `#/$defs/dependencyConstraints` for more information.\n
+    \t- The file MUST be terminated with a newline.\n
+    These formatting rules are enforced by Gradle when the file is loaded.
+    The goal is to ensure that automated tooling (eg. Dependabot and Rennotate) will generate a consistent file that won't cause annoying white space diffs.
+    ",
+  required: [
+      "version",
+      "dependencyConstraints"
+  ],
+  properties: {
+    version: {
+      type: "string",
+      title: "Version",
+      description: "Version of the schema.",
+      default: "1.0.0",
+      examples: [
+          "1.0.0"
+      ]
+    },
+    dependencyConstraints: {
+      $ref: "#/$defs/dependencyConstraints"
+    }
+  },
+  additionalProperties: false,
+  $defs: {
+    dependencyConstraints: {
+      type: "array",
+      title: "Constraints",
+      description: "A collection of Dependency Constraints.
+        Must be sorted lexicographically by `dependencyConstraint.group`, then by `dependencyConstraint.name`, then by `dependencyConstraint.suggestedVersion`.",
+      items: {
+        $ref: "#/$defs/dependencyConstraint"
+      }
+    },
+    dependencyConstraint: {
+      type: "object",
+      title: "Constraint",
+      description: "A single Dependency Constraint.",
+      required: [
+          "group",
+          "name",
+          "suggestedVersion",
+          "because"
+      ],
+      properties: {
+        group: {
+          type: "string",
+          title: "Group",
+          description: "The group of the dependency.",
+          examples: [
+              "com.example",
+              "org.springframework"
+          ]
+        },
+        name: {
+          type: "string",
+          title: "Name",
+          description: "The name or artifact id of the dependency.",
+          examples: [
+              "example-dependency",
+              "spring-core"
+          ]
+        },
+        suggestedVersion: {
+          type: "string",
+          title: "Suggested Version",
+          description: "The suggested version of the dependency.
+            This is needed because, at it's core, the Gradle Dependency Engine is a constraints solver.
+            Without knowledge of a known version that is potentially safe, the constraint will simply cause the Gradle build to fail.
+            As such, a suggested version is used to provide a hint to the constraint engine what version it may want to use.
+            \n\n
+            IMPORTANT NOTE: When used in the context of security updates, the suggested version should be above all currently
+            resolved versions of this dependency while simultaneously the lowest version of the dependency that is considered safe.",
+          examples: [
+              "1.0.0"
+          ]
+        },
+        rejectedVersions: {
+          type: "array",
+          title: "Rejected Versions",
+          description: "The list of versions that are rejected by this constraint.",
+          items: {
+            type: "string",
+            title: "Rejected Version",
+            description: "This supports either specific versions, or the Gradle version range format:
+              https://docs.gradle.org/current/userguide/single_versions.html",
+            examples: [
+                "1.0.0",
+                "[1.0,1.4]",
+                "[1.0,1.4)"
+            ]
+          }
+        },
+        because: {
+          type: "object",
+          title: "Because",
+          description: "Will be used to generate the Dependency Constraint 'because' reason.
+            The reason will contain the `advisoryIdentifiers` as a prefix, with the `reason` as the suffix.
+
+            Example: '[CVE-2019-1234, GHSA-aaaa-bbbb-cccc]: Contains an SQL injection vulnerability.",
+          properties: {
+            reason: {
+              type: "string",
+              title: "Reason",
+              description: "The reason why this constraint is being applied.",
+              examples: [
+                  "Contains an SQL injection vulnerability."
+              ]
+            },
+            advisoryIdentifiers: {
+              type: "array",
+              title: "Advisory Identifiers",
+              description: "The list of advisory identifiers that are associated with this constraint.",
+              items: {
+                type: "string",
+                title: "Advisory Identifier",
+                description: "The advisory identifier.",
+                examples: [
+                    "CVE-2019-1234",
+                    "GHSA-aaaa-bbbb-cccc"
+                ]
+              }
+            },
+            moreInformationUrls: {
+              type: "array",
+              title: "More Information URLs",
+              description: "The list of more information URLs that are associated with this constraint.",
+              items: {
+                type: "string",
+                title: "More Information URL",
+                description: "A link to where additional information about the rationale for this constraint can found.",
+                examples: [
+                    "https://nvd.nist.gov/vuln/detail/cve-2019-1234",
+                    "https://github.com/junit-team/junit4/security/advisories/GHSA-aaaa-bbbb-cccc"
+                ]
+              }
+            }
+          },
+          required: [
+              "reason"
+          ],
+          additionalProperties: false
+        }
+      }
+    },
+    additionalProperties: false
+  }
+}
