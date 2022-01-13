@@ -10,8 +10,6 @@ plugins {
     id("com.github.johnrengelman.shadow")
 }
 
-val pluginGroup = group
-
 val shadowImplementation: Configuration by configurations.creating
 configurations["compileOnly"].extendsFrom(shadowImplementation)
 configurations["testImplementation"].extendsFrom(shadowImplementation)
@@ -31,17 +29,20 @@ tasks.withType<PluginUnderTestMetadata>().configureEach {
 val shadowJarTask: TaskProvider<ShadowJar> = tasks.named<ShadowJar>("shadowJar") {
     archiveClassifier.set("")
     configurations = listOf(shadowImplementation)
+    val projectGroup = project.group
     doFirst {
-        shadowImplementation.resolvedConfiguration.files.forEach { jar ->
-            JarFile(jar).use { jf ->
-                jf.entries().iterator().forEach { entry ->
-                    if (entry.name.endsWith(".class") && entry.name != "module-info.class") {
-                        val packageName =
-                            entry
-                                .name
-                                .substring(0..entry.name.lastIndexOf('/'))
-                                .replace('/', '.')
-                        relocate(packageName, "${pluginGroup}.shadow.$packageName")
+        configurations.forEach { configuration ->
+            configuration.files.forEach { jar ->
+                JarFile(jar).use { jf ->
+                    jf.entries().iterator().forEach { entry ->
+                        if (entry.name.endsWith(".class") && entry.name != "module-info.class") {
+                            val packageName =
+                                    entry
+                                            .name
+                                            .substring(0..entry.name.lastIndexOf('/'))
+                                            .replace('/', '.')
+                            relocate(packageName, "${projectGroup}.shadow.$packageName")
+                        }
                     }
                 }
             }
@@ -82,7 +83,7 @@ val functionalTestSourceSet = sourceSets.create("functionalTest") { }
 
 gradlePlugin.testSourceSets(functionalTestSourceSet)
 configurations["functionalTestImplementation"].extendsFrom(
-    configurations["testImplementation"]
+        configurations["testImplementation"]
 )
 
 // Add a task to run the functional tests
@@ -108,9 +109,9 @@ afterEvaluate {
                 // https://github.com/gradle/gradle/blob/master/subprojects/plugin-development/src/main/java/org/gradle/plugin/devel/plugins/MavenPluginPublishPlugin.java#L73
                 if (name == "pluginMaven") {
                     setArtifacts(
-                        listOf(
-                            shadowJarTask.get()
-                        )
+                            listOf(
+                                    shadowJarTask.get()
+                            )
                     )
                 }
             }

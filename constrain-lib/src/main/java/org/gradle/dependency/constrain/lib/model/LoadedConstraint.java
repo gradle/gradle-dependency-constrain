@@ -18,7 +18,11 @@ package org.gradle.dependency.constrain.lib.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiPredicate;
 
 import static java.util.Objects.requireNonNull;
 
@@ -26,6 +30,10 @@ import static java.util.Objects.requireNonNull;
  * Represents a constraint loaded from the constraints.xml file.
  */
 public final class LoadedConstraint {
+    public static final Comparator<LoadedConstraint> GROUP_NAME_SUGGESTED_VERSION_COMPARATOR =
+        Comparator.comparing(LoadedConstraint::getGroupNameSuggestedVersion);
+    public static final BiPredicate<LoadedConstraint, LoadedConstraint> GROUP_NAME_SUGGESTED_VERSION_EQUALITY =
+        (a, b) -> a.getGroupNameSuggestedVersion().equals(b.getGroupNameSuggestedVersion());
     private final String group;
     private final String name;
     private final String suggestedVersion;
@@ -69,8 +77,15 @@ public final class LoadedConstraint {
         return because;
     }
 
-    public String getObjectNotation() {
-        return group + ":" + name;
+    public Map<String, String> getObjectNotation() {
+        final Map<String, String> objectNotation = new HashMap<>(2);
+        objectNotation.put("group", group);
+        objectNotation.put("name", name);
+        return Collections.unmodifiableMap(objectNotation);
+    }
+
+    private String getGroupNameSuggestedVersion() {
+        return group + ":" + name + ":" + suggestedVersion;
     }
 
     public static final class Builder {
@@ -117,7 +132,7 @@ public final class LoadedConstraint {
             return this;
         }
 
-        public Builder addBecause(String because) {
+        public Builder because(String because) {
             this.because = requireNonNull(because, "`because` must not be null");
             return this;
         }

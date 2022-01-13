@@ -16,9 +16,15 @@
 
 package org.gradle.dependency.constrain.lib.model;
 
+import com.github.difflib.DiffUtils;
+import com.github.difflib.patch.AbstractDelta;
+import com.github.difflib.patch.Patch;
+import org.gradle.dependency.constrain.lib.DependencyConstrainException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class LoadedConstraints {
     private static final LoadedConstraints EMPTY = new LoadedConstraints(Collections.emptyList());
@@ -42,6 +48,7 @@ public final class LoadedConstraints {
     }
 
     public static final class Builder {
+        private final String LINE_SEPARATOR = System.lineSeparator();
         private final List<LoadedConstraint> constraints = new ArrayList<>();
 
         private Builder() {
@@ -52,7 +59,63 @@ public final class LoadedConstraints {
             constraints.add(constraint);
         }
 
+        private void ensureConstraintsSorted() {
+            List<LoadedConstraint> sortedConstraints =
+                constraints.stream().sorted(LoadedConstraint.GROUP_NAME_SUGGESTED_VERSION_COMPARATOR).collect(Collectors.toList());
+            final Patch<LoadedConstraint> patch =
+                DiffUtils.diff(constraints, sortedConstraints, LoadedConstraint.GROUP_NAME_SUGGESTED_VERSION_EQUALITY);
+            if (!patch.getDeltas().isEmpty()) {
+                String deltas =
+                    patch
+                        .getDeltas()
+                        .stream()
+                        .map(this::toConstraintSortErrorMessage)
+                        .collect(Collectors.joining(LINE_SEPARATOR + "  - ", "  - ", ""));
+                throw new DependencyConstrainException(
+                    "Constrains were not sorted by group:name:suggestedVersion in lexicographical order:" + LINE_SEPARATOR + deltas
+                );
+            }
+        }
+
+        private String toConstraintSortErrorMessage(AbstractDelta<LoadedConstraint> delta) {
+            final List<LoadedConstraint> lines;
+            final String qualifier;
+            switch (delta.getType()) {
+                case DELETE:
+                    qualifier = "Remove";
+                    lines = delta.getSource().getLines();
+                    break;
+                case INSERT:
+                    qualifier = "Insert";
+                    lines = delta.getTarget().getLines();
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected delta: " + delta);
+            }
+            final String constraintPluralized = lines.size() > 1 ? "constraints" : "constraint";
+            String deltaFixMessage =
+                qualifier + " " + constraintPluralized + " at position " + delta.getSource().getPosition();
+            if (lines.size() > 1) {
+                deltaFixMessage += " through " + (delta.getSource().getPosition() + lines.size() - 1);
+            }
+            final String linesMessage =
+                lines
+                    .stream()
+                    .map(Builder::toJsonMapNotation)
+                    .collect(Collectors.joining(LINE_SEPARATOR + "    - ", "    - ", ""));
+            return deltaFixMessage + ':' + LINE_SEPARATOR + linesMessage;
+        }
+
+        private static String toJsonMapNotation(LoadedConstraint loadedConstraint) {
+            return String.format("{\"group\":\"%s\", \"name\":\"%s\", \"suggestedVersion\":\"%s\"}",
+                loadedConstraint.getGroup(),
+                loadedConstraint.getName(),
+                loadedConstraint.getSuggestedVersion()
+            );
+        }
+
         public LoadedConstraints build() {
+            ensureConstraintsSorted();
             return new LoadedConstraints(constraints);
         }
     }

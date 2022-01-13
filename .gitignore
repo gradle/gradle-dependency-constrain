@@ -19,6 +19,7 @@ test-splits/
 !/.idea/inspectionProfiles
 !/.idea/icon.png
 !/.idea/icon_dark.png
+!/.idea/jsonSchemas.xml
 */**/.idea
 */**/.shelf
 .shelf

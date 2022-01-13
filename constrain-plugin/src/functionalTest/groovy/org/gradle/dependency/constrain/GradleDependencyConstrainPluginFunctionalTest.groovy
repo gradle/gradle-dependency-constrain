@@ -13,25 +13,33 @@ import java.nio.file.Files
  */
 class GradleDependencyConstrainPluginFunctionalTest extends BaseFunctionalTest {
 
-    @Language("xml")
-    private static final String JUNIT_CONSTRAINTS = """<?xml version="1.0"?>
-<constraints>
-    <constraint>
-        <group>junit</group>
-        <name>junit</name>
-        <suggested-version>4.13.1</suggested-version>
-        <rejected>
-            <reject>[4.7,4.13]</reject>
-        </rejected>
-        <because>CVE-2020-15250: TemporaryFolder on unix-like systems does not limit access to created files</because>
-    </constraint>
-</constraints>
-    """.stripMargin()
+    @Language("json")
+    private static final String JUNIT_CONSTRAINTS = """
+{
+  "version": "1.0.0",
+  "dependencyConstraints": [
+    {
+      "group": "junit",
+      "name": "junit",
+      "suggestedVersion": "4.13.1",
+      "rejectedVersions": [
+        "[4.7,4.13]"
+      ],
+      "because": {
+        "advisoryIdentifiers": [
+          "CVE-2020-15250"
+        ],
+        "reason": "TemporaryFolder on unix-like systems does not limit access to created files"
+      }
+    }
+  ]
+}
+""".trim()
 
     void applyConstraintsFile() {
         File gradleDirectory = new File(projectDir, "gradle")
         Files.createDirectories(gradleDirectory.toPath())
-        writeString(new File(gradleDirectory, "constraints.xml"), JUNIT_CONSTRAINTS)
+        writeString(new File(gradleDirectory, "dependency-constraints.json"), JUNIT_CONSTRAINTS)
     }
 
     void "can constrain project dependencies"() {

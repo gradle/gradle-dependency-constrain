@@ -197,7 +197,7 @@ public final class ConstraintsXmlReader {
                     currentReject = null;
                     break;
                 case BECAUSE:
-                    currentConstraintBuilder.addBecause(currentBecause);
+                    currentConstraintBuilder.because(currentBecause);
                     inBecause = false;
                     currentBecause = null;
                     break;

@@ -25,6 +25,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public final class ConstrainFileLoader {
+    static final String DEPENDENCY_CONSTRAINTS_FILE_NAME = "dependency-constraints.json";
+    static final String DEPENDENCY_CONSTRAINTS_FILE_PATH_RELATIVE = "gradle/" + DEPENDENCY_CONSTRAINTS_FILE_NAME;
 
     private ConstrainFileLoader() {
         // Utility class
@@ -36,12 +38,12 @@ public final class ConstrainFileLoader {
      * error.
      */
     public static LoadedConstraints loadConstraintsFromFile(File projectGradleDirectory) {
-        final File constraintsFile = new File(projectGradleDirectory, "constraints.xml");
+        final File constraintsFile = new File(projectGradleDirectory, DEPENDENCY_CONSTRAINTS_FILE_NAME);
         if (!constraintsFile.exists()) {
             return LoadedConstraints.empty();
         }
         try {
-            return ConstraintsXmlReader.readFromXml(new FileInputStream(constraintsFile));
+            return ConstraintsJsonReader.readFromJson(new FileInputStream(constraintsFile));
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(e);
         } catch (DependencyConstrainException e) {
